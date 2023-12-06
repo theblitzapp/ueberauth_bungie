@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 config :oauth2, debug: true
 

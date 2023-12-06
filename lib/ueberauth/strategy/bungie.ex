@@ -13,19 +13,19 @@ defmodule Ueberauth.Strategy.Bungie do
   def handle_request!(conn) do
     opts =
       []
-      |> Keyword.put(:redirect_uri, callback_url(conn))
+      |> with_state_param(conn)
 
     redirect!(conn, Ueberauth.Strategy.Bungie.OAuth.authorize_url!(opts))
   end
 
   def handle_callback!(%Plug.Conn{params: %{"code" => code}} = conn) do
     params = [code: code]
-    opts = [redirect_uri: callback_url(conn)]
+    opts = []
 
-    case Ueberauth.Strategy.Bungie.OAuth.get_access_token(params, opts) do
-      {:ok, token} ->
+    case Ueberauth.Strategy.Bungie.OAuth.get_token!(params, opts) do
+      %OAuth2.Client{token: token} ->
         fetch_user(conn, token)
-
+      
       {:error, {error_code, error_description}} ->
         set_errors!(conn, [error(error_code, error_description)])
     end
@@ -80,7 +80,6 @@ defmodule Ueberauth.Strategy.Bungie do
         token.other_params["membership_id"] <> "/"
 
     resp = Ueberauth.Strategy.Bungie.OAuth.get(token, path)
-
     case resp do
       {:ok, %OAuth2.Response{status_code: 401, body: _body}} ->
         set_errors!(conn, [error("token", "unauthorized")])

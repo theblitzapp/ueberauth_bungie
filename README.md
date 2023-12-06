@@ -1,9 +1,8 @@
 # Überauth Bungie
 
-[![Hex Version](https://img.shields.io/hexpm/v/ueberauth_bungie.svg)](https://hex.pm/packages/ueberauth_bungie)
-[![CircleCI](https://circleci.com/gh/willsoto/ueberauth_bungie/tree/master.svg?style=svg&circle-token=1121656241eba82bacba9901e3e4086bc588dd2d)](https://circleci.com/gh/willsoto/ueberauth_bungie/tree/master)
-
 > Bungie Oauth2 strategy for Überauth.
+
+This is a fork of the original `ueberauth_bungie` package at: `https://github.com/willsoto/ueberauth_bungie` that has been upgraded to support bungie.net api minimum version 2.18.1
 
 ## Installation
 
@@ -13,7 +12,10 @@
 ```elixir
 def deps do
   [
-    {:ueberauth_bungie, "~> 0.1.0"}
+    {:ueberauth_bungie,
+     override: true,
+     git: "https://github.com/tiltify/ueberauth_bungie"
+    }
   ]
 end
 ```

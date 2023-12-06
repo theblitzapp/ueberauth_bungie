@@ -6,11 +6,9 @@ defmodule Ueberauth.Strategy.Bungie.OAuth do
 
   @defaults [
     strategy: __MODULE__,
-    # TODO: how to generate this?
-    # state: "",
     site: "https://www.bungie.net/Platform",
-    authorize_url: "https://www.bungie.net/en/oauth/authorize",
-    token_url: "https://www.bungie.net/platform/app/oauth/token/",
+    authorize_url: "https://www.bungie.net/en/OAuth/Authorize",
+    token_url: "https://www.bungie.net/Platform/App/OAuth/token/",
     token_method: :post
   ]
 
@@ -26,39 +24,32 @@ defmodule Ueberauth.Strategy.Bungie.OAuth do
       @defaults
       |> Keyword.merge(config)
       |> Keyword.merge(opts)
-      |> Keyword.merge(headers: ["X-API-Key": config[:api_key]])
 
-    OAuth2.Client.new(opts)
+    opts
+    |> OAuth2.Client.new()
+    |> put_header("X-API-Key", config[:api_key])
+    |> OAuth2.Client.put_serializer("application/json", Jason)
   end
 
-  @doc """
-  Provides the authorize url for the request phase of Ueberauth. No need to call this usually.
-  """
-  def authorize_url!(params \\ [], opts \\ []) do
-    opts
-    |> client
-    |> OAuth2.Client.authorize_url!(params)
+ 
+  def authorize_url!(opts) do
+    OAuth2.Client.authorize_url!(client(), opts)
+  end
+
+  # you can pass options to the underlying http library via `opts` parameter
+  def get_token!(params \\ [], headers \\ [], opts \\ []) do
+    OAuth2.Client.get_token!(client(), params, headers, opts)
+  end
+
+  def get_token(client, params, headers) do
+    client
+    |> get_access_token(params, headers)
   end
 
   def get(token, url, headers \\ [], opts \\ []) do
     [token: token]
-    |> client
-    |> put_param("client_secret", client().client_secret)
+    |> client()
     |> OAuth2.Client.get(url, headers, opts)
-  end
-
-  def get_access_token(params \\ [], opts \\ []) do
-    case opts |> client |> OAuth2.Client.get_token(params) do
-      {:error, %{body: %{"error" => error, "error_description" => description}}} ->
-        {:error, {error, description}}
-
-      {:ok, %{token: %{access_token: nil} = token}} ->
-        %{"error" => error, "error_description" => description} = token.other_params
-        {:error, {error, description}}
-
-      {:ok, %{token: token}} ->
-        {:ok, token}
-    end
   end
 
   # Strategy Callbacks
@@ -67,11 +58,20 @@ defmodule Ueberauth.Strategy.Bungie.OAuth do
     OAuth2.Strategy.AuthCode.authorize_url(client, params)
   end
 
-  def get_token(client, params, headers) do
+  def get_access_token(client, params, headers) do
+    {code, params} = Keyword.pop(params, :code, client.params["code"])
+
+    unless code do
+      raise OAuth2.Error, reason: "Missing required key `code` for `#{inspect(__MODULE__)}`"
+    end
+
     client
-    |> put_param("client_secret", client.client_secret)
-    |> put_header("Accept", "application/json")
-    |> OAuth2.Strategy.AuthCode.get_token(params, headers)
+    |> put_param(:code, code)
+    |> put_param(:grant_type, "authorization_code")
+    |> put_param(:client_id, client.client_id)
+    |> put_param(:redirect_uri, client.redirect_uri)
+    |> merge_params(params)
+    |> put_headers(headers)
   end
 
   defp check_config_key_exists(config, key) when is_list(config) do
