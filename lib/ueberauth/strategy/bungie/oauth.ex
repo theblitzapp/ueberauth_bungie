@@ -17,8 +17,8 @@ defmodule Ueberauth.Strategy.Bungie.OAuth do
       :ueberauth
       |> Application.fetch_env!(Ueberauth.Strategy.Bungie.OAuth)
       |> check_config_key_exists(:client_id)
+      |> check_config_key_exists(:client_secret)
       |> check_config_key_exists(:api_key)
-      |> check_config_key_exists(:redirect_uri)
 
     opts =
       @defaults
@@ -31,7 +31,7 @@ defmodule Ueberauth.Strategy.Bungie.OAuth do
     |> OAuth2.Client.put_serializer("application/json", Jason)
   end
 
- 
+
   def authorize_url!(opts) do
     OAuth2.Client.authorize_url!(client(), opts)
   end
@@ -69,7 +69,7 @@ defmodule Ueberauth.Strategy.Bungie.OAuth do
     |> put_param(:code, code)
     |> put_param(:grant_type, "authorization_code")
     |> put_param(:client_id, client.client_id)
-    |> put_param(:redirect_uri, client.redirect_uri)
+    |> put_param(:client_secret, client.client_secret)
     |> merge_params(params)
     |> put_headers(headers)
   end

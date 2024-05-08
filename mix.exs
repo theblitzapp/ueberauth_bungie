@@ -8,7 +8,7 @@ defmodule UeberauthBungie.Mixfile do
     [
       app: :ueberauth_bungie,
       version: @version,
-      elixir: "~> 1.15.4",
+      elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       source_url: @url,
