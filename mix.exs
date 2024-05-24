@@ -30,7 +30,7 @@ defmodule UeberauthBungie.Mixfile do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ueberauth, "~> 0.4"},
+      {:ueberauth, "~> 0.10"},
       {:oauth2, "~> 2.0"},
       {:jason, "~> 1.2"},
       {:credo,

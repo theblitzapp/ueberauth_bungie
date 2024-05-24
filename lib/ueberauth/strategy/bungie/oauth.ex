@@ -52,6 +52,17 @@ defmodule Ueberauth.Strategy.Bungie.OAuth do
     |> OAuth2.Client.get(url, headers, opts)
   end
 
+  def refresh_token(client \\ client(), params, opts \\ []) do
+    token_url = @defaults |> Keyword.merge(opts) |> Keyword.get(:token_url)
+
+    client()
+    |> put_param(:refresh_token, params[:refresh_token])
+    |> put_param(:grant_type, "refresh_token")
+    |> put_param(:client_id, client.client_id)
+    |> put_param(:client_secret, client.client_secret)
+    |> OAuth2.Client.get(token_url, [], opts)
+  end
+
   # Strategy Callbacks
 
   def authorize_url(client, params) do
