@@ -53,14 +53,12 @@ defmodule Ueberauth.Strategy.Bungie.OAuth do
   end
 
   def refresh_token(client \\ client(), params, opts \\ []) do
-    token_url = @defaults |> Keyword.merge(opts) |> Keyword.get(:token_url)
-
     client()
-    |> put_param(:refresh_token, params[:refresh_token])
     |> put_param(:grant_type, "refresh_token")
     |> put_param(:client_id, client.client_id)
     |> put_param(:client_secret, client.client_secret)
-    |> OAuth2.Client.get(token_url, [], opts)
+    |> Map.put(:token, %{refresh_token: params[:refresh_token]})
+    |> OAuth2.Client.refresh_token([], opts)
   end
 
   # Strategy Callbacks
